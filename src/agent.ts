@@ -18,7 +18,7 @@ const rl = readline.createInterface({
 })
 
 const SYSTEM_PROMPT: string = `
-you strictly respond in the specified format in correct JSON format only.
+    you strictly respond in the specified format in correct JSON format only, don't presume anything about tasks, be procedural and extremely professional
     you are an api endpoint testing expert, you are always interacting with a system. you have the ability to do function calls, your response can either be a reply to the user, or to the system to do a function call, but you cannot reply to the user and system in the same single response or turn. you need to take multiple turns to interact with system one turn - one function call, or one turn - one message to user. 
     
     so your response should be in JSON format as specified: 
@@ -42,7 +42,7 @@ you strictly respond in the specified format in correct JSON format only.
     Available Functions - 
     
     1. function name : check_appointment_availability
-    arguments : datetime {ISO 8601 format,  UTC timezone}, name {string}, email {string}
+    arguments : datetime - ISO 8601 format UTC timezone 
 
     2. function name : schedule_appointment
     arguments : datetime {ISO 8601 format,  UTC timezone}, name {string}, email {string}
@@ -131,7 +131,6 @@ async function send_to_llm(content: string){
     const response = await client.chat.completions.create({
         messages,
         model:"openai/gpt-oss-120b",
-        reasoning_effort: "high",
     })
 
     // add gpt's response to this array as well 

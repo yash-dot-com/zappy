@@ -1,9 +1,21 @@
-### problems that needs to be fixed 
+### todos
+[.] basic agentic loop
+[] plan tools
+[] implement tools properly
+[] refine prompt 
+[] refine response structure 
+[] zod validation for each function and LLM output 
+[] error handling -> LLM related, Tool calling related, 
+
+### general observations 
+- agent:dev script has some problem, it loops again and again during initialization
+- sometimes these opensource models can be a little be reluctant to your orders and may disobey so writting a really good and strict prompt is really important 
 - every function should send its response in text manner to the LLM for better processing.
 - sometimes LLM outputs invalid JSON format
 - must include some way to check how many times did the agent call the function
 - put no_of_times_called in the function 
 - and max tries option for safety as well
+- need to maintain a system prompt version directory
 - after creating one agent end to end properly, you can build anything from scratch lmao
 
 ### Problem & Solution
