@@ -1,0 +1,34 @@
+{
+  "name": "zappy",
+  "version": "1.0.0",
+  "description": "<img width=\"756\" height=\"512\" alt=\"image\" src=\"https://github.com/user-attachments/assets/5fda2bee-5f61-47d7-b9e1-8dc9bb81c382\" />",
+  "main": "index.js",
+  "scripts": {
+    "agent:dev": "npx tsx watch src/agent.ts",
+    "agent:prod": "npx tsx src/agent.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yash-dot-com/zappy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/yash-dot-com/zappy/issues"
+  },
+  "homepage": "https://github.com/yash-dot-com/zappy#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "groq-sdk": "^1.2.1",
+    "openai": "^6.42.0",
+    "readline": "^1.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/readline-sync": "^1.4.8"
+  }
+}
