@@ -1,13 +1,14 @@
 ### todos
-- [.] basic agentic loop
-- [] plan tools
-- [] learn zod to implement tools and fixed schemas 
-- [] error handling with zod
-- [] implement tools properly
-- [] refine prompt 
-- [] refine response structure 
-- [] zod validation for each function and LLM output 
-- [] error handling -> LLM related, Tool calling related, 
+- [x] basic agentic loop
+- [ ] system grammer - files naming convention, file structure convention, auth.md & auth.json convention, cookies.txt, get_endpoint doesn't need payload, post_endpoint / put_endpoint / delete_endpoint / patch_endpoint plan out this properly. 
+- [ ] plan tools
+- [ ] learn zod to implement tools and fixed schemas 
+- [ ] error handling with zod
+- [ ] implement tools properly
+- [ ] refine prompt 
+- [ ] refine response structure 
+- [ ] zod validation for each function and LLM output 
+- [ ] error handling -> LLM related, Tool calling related, 
 
 ### general observations 
 - agent:dev script has some problem, it loops again and again during initialization
