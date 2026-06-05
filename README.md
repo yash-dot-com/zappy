@@ -1,3 +1,12 @@
+### figured out 
+- execution order of endpoints matter
+  1. auth endpoint
+  2. post 
+  3. get
+  4. patch / put
+  5. delete 
+- map_files utility function is being created for this. 
+
 ### todos
 - [x] basic agentic loop
 - [ ] system grammer - files naming convention, file structure convention, auth.md & auth.json convention, cookies.txt, get_endpoint doesn't need payload, post_endpoint / put_endpoint / delete_endpoint / patch_endpoint plan out this properly. 
@@ -19,6 +28,9 @@
 - [ ] design tools over the designed files structure and folder rules
 - [ ] implement the tools 
 
+### endpoint file structure 
+- I defined this file by working backwards from what informtion will agent need to create a good curl cmd. 
+-  
 
 ### general observations 
 - agent:dev script has some problem, it loops again and again during initialization

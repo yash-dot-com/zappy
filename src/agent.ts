@@ -1,6 +1,10 @@
 import {Groq} from "groq-sdk"
 import readline from "readline"
 import dotenv from "dotenv"
+import { read_auth_file } from "./utils/perform_auth.js"
+import print_conversation from "./utils/print_conversation.js"
+import clear_context from "./utils/clear_context.js"
+
 dotenv.config()
 
 const apiKey: string = process.env.GROQ_API!
@@ -18,10 +22,13 @@ const rl = readline.createInterface({
 })
 
 const SYSTEM_PROMPT: string = `
-    you strictly respond in the specified format in correct JSON format only, don't presume anything about tasks, be procedural and extremely professional
-    you are an api endpoint testing expert, you are always interacting with a system. you have the ability to do function calls, your response can either be a reply to the user, or to the system to do a function call, but you cannot reply to the user and system in the same single response or turn. you need to take multiple turns to interact with system one turn - one function call, or one turn - one message to user. 
-    
-    so your response should be in JSON format as specified: 
+### identity
+you are a really obidient agent that responses only in specified JSON format below, you can interact with user or system. you can call functions to perform actions and interact with system and provide user a good service. your purpose is to do what users demands perfectly and provide helpful response
+
+### if the content of any file is json or md, return it as json 
+
+### JSON response format 
+your response should be in JSON format as specified: 
     
     {
         "to": "",
@@ -29,9 +36,11 @@ const SYSTEM_PROMPT: string = `
         "function_call":{
             "function": "",
             "arguments": []
-        }
+        },
+        function_response: ""
     }
 
+### explanation of keys in specified 
     I will explain the keys - 
     1. to - string, values could be system or user, depending on who you are replying to.
     2. message - plain text message, use this only if you are replying to the user not system
@@ -39,16 +48,18 @@ const SYSTEM_PROMPT: string = `
     4. a. function - name of the function 
     4. b. arguments - an array of arguments for the funciton call where each array itme is the value for the argument
 
-    Available Functions - 
-    
-    1. function name : check_appointment_availability
-    arguments : datetime - ISO 8601 format UTC timezone 
+### Available Functions - 
+    1. function name : print_conversation 
+    description : prints the previous conversation between user and agent
+    arguments : NONE
 
-    2. function name : schedule_appointment
-    arguments : datetime {ISO 8601 format,  UTC timezone}, name {string}, email {string}
+    2. function name : read_auth_file
+    description : contains information about authentication endpoints to establish required cookies or tokens for subsequent endpoints.
+    arguments : none 
 
-    3. function name :  delete_appointment 
-    arguments : datetime {ISO 8601 format,  UTC timezone}, name {string}, email {string}
+    3. function name : clear_context 
+    description : clear the context array, creating more room for other context
+    arguments : none
 
     current time and date for you is ${getCurrentTimeInTimeZone("Asia/Kolkata")}
 `
@@ -93,10 +104,10 @@ function delete_appointment(datetime:string, name: string, email:string){
 // mapping functions to output string from LLM 
 // @ts-ignore
 const function_map = {
-    "check_appointment_availability" : check_appointment_availability,
-    "schedule_appointment" : schedule_appointment, 
-    "delete_appointment" : delete_appointment,
-}
+    "read_auth_file" : read_auth_file,
+    "print_conversation" : () => print_conversation(messages),
+    "clear_context" : () => clear_context(messages, SYSTEM_PROMPT),
+} as any 
 
 // process LLM response 
 async function process_llm_response(response: any){
@@ -113,9 +124,9 @@ async function process_llm_response(response: any){
         const args = parsedJson.function_call.arguments
 
         // call the function 
-        const functionResponse = function_map[fn](...args)
+        const functionResponse = await function_map[fn](...args)
 
-        await process_llm_response(await send_to_llm(`function response : `+ functionResponse ? 'true' : 'false'))
+        await process_llm_response(await send_to_llm(`function response : `+ functionResponse))
     }
 }
 
@@ -131,6 +142,7 @@ async function send_to_llm(content: string){
     const response = await client.chat.completions.create({
         messages,
         model:"openai/gpt-oss-120b",
+        reasoning_effort: "medium",
     })
 
     // add gpt's response to this array as well 

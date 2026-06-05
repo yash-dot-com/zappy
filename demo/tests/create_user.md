@@ -1,19 +1,24 @@
-endpoint : POST /users
-description : create a single user  
-requires-auth : false
+method : POST
+endpoint : /users
+description : create a single user 
+requires-auth : true
 session-type : JWT cookie 
 requires-payload : true
-query-params : nil
-route-params : nil
+query-params : nil / [title, ]
+route-params : nil []
+headers : {
+  "header-one" : "value",
+  "header-two" : "value",
+}
 expected-response-type : single objects in JSON format 
 expected-response-structure : 
 [
   {
-    "username" : "yash",
-    "tag" : "@ya$h",
-    "email" : "y@gmail.com",
-    "followers" : 29,
-    "following" : 432,
+    "username" : "string",
+    "tag" : "string",
+    "email" : "string",
+    "followers" : "number",
+    "following" : "number",
   },
   ...
 ]
