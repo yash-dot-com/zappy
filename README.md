@@ -15,9 +15,10 @@
 - [ ] plan structure for files based on transacted data 
 - [ ] define structure for files & rules 
 - [ ] refine prompt structure the responses
+- [ ] map out all the actions that the agent will perform, that's going to be tool function
 - [ ] design tools over the designed files structure and folder rules
 - [ ] implement the tools 
-- [ ] be happy ;)
+
 
 ### general observations 
 - agent:dev script has some problem, it loops again and again during initialization
