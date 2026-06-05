@@ -10,6 +10,15 @@
 - [ ] zod validation for each function and LLM output 
 - [ ] error handling -> LLM related, Tool calling related, 
 
+### zappy system grammar
+- [ ] map out data transaction between user, agent and system
+- [ ] plan structure for files based on transacted data 
+- [ ] define structure for files & rules 
+- [ ] refine prompt structure the responses
+- [ ] design tools over the designed files structure and folder rules
+- [ ] implement the tools 
+- [ ] be happy ;)
+
 ### general observations 
 - agent:dev script has some problem, it loops again and again during initialization
 - sometimes these opensource models can be a little be reluctant to your orders and may disobey so writting a really good and strict prompt is really important 
