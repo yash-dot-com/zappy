@@ -1,6 +1,8 @@
 ### todos
 [.] basic agentic loop
 [] plan tools
+[] learn zod to implement tools and fixed schemas 
+[] error handling with zod
 [] implement tools properly
 [] refine prompt 
 [] refine response structure 
