@@ -7,7 +7,6 @@ import get_auth_files_content from "./utils/get_auth_files_content.js"
 import fs from "fs/promises"
 import path from "path"
 import z from "zod"
-import type z4 from "zod/v4"
 import {zodToJsonSchema} from "zod-to-json-schema"
 
 dotenv.config()
@@ -54,11 +53,6 @@ const emailSchema = z.object({
 type emailType = z.infer<typeof emailSchema>
 const jsonSchema = zodToJsonSchema(emailSchema, "emailSchema");
 
-const AVAILABLE_TOOLS = `
-    available tools 
-    read_folder_content : used to read folder contents. 
-`
-
 const SYSTEM_PROMPT: string = `You are an AI agent that communicates exclusively through structured JSON. 
 
 Current Date and Time: \\\${getCurrentTimeInTimeZone("Asia/Kolkata")}
@@ -68,7 +62,8 @@ Rules:
 2. Choose exactly one destination: "user" (for direct communication) or "system" (for executing tools). Never mix fields between the two formats.
 3. If an invalid or unknown tool is requested, or if parameters are missing, routing must fallback to the "user" format to explain the issue.
 4. you can store important details, facts and decision using special memory functions, make sure to analyze the conversation and put or update specific important 
-    parts that seems important for user in a very summarized but understandable way for you, to make critical decisions or enhance user experience. 
+    parts that seems important for user in a very summarized but understandable way for you, to make critical decisions or enhance user experience.
+5. you can take only and only one action at a time, either one action or one response. can't work with multiple json responses in at a single time, one tool call, wait for result, reason then next. similarly one user response, wait for reply, reason continue. 
 
 Available Tools:
 * get_auth_endpoint (No arguments required)
