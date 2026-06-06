@@ -1,2 +1,2 @@
 auth token : aodhsaoihdasoidshoasihdso
-auth method : ssh 
+auth method : ssh cl

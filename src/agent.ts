@@ -1,68 +1,120 @@
-import {Groq} from "groq-sdk"
+import OpenAI from "openai"
 import readline from "readline"
 import dotenv from "dotenv"
-import { read_auth_file } from "./utils/perform_auth.js"
-import print_conversation from "./utils/print_conversation.js"
-import clear_context from "./utils/clear_context.js"
+import read_folder_content from "./utils/read_folder_content.js"
+import get_current_working_directory from "./utils/get_current_working_directory.js"
+import get_auth_files_content from "./utils/get_auth_files_content.js"
+import fs from "fs/promises"
+import path from "path"
+import z from "zod"
+import type z4 from "zod/v4"
+import {zodToJsonSchema} from "zod-to-json-schema"
 
 dotenv.config()
 
 const apiKey: string = process.env.GROQ_API!
 if(!apiKey){
-    throw new Error("set groq api key")
+    throw new Error("set api key")
 }
 
-const client = new Groq({
-    apiKey,
+const client = new OpenAI({
+  apiKey,
+  baseURL: "https://api.groq.com/openai/v1"
 })
+
+const important_things : any = [];
+
+const get_important_memory = () =>{
+    if(!important_things.length) return "no memory saved"
+    return {important_things}
+}
+
+const set_important_memory = (memory :string) => {
+    important_things.push(memory)
+    return "memory saved successfully"
+}
+
+const delete_important_memory = (memory: string) => {
+    important_things.filter((mem:string) => mem !== memory)
+    return "deleted memory successfully"
+}
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 })
 
-const SYSTEM_PROMPT: string = `
-### identity
-you are a really obidient agent that responses only in specified JSON format below, you can interact with user or system. you can call functions to perform actions and interact with system and provide user a good service. your purpose is to do what users demands perfectly and provide helpful response
+const emailSchema = z.object({
+    name: z.string().describe("name recepient"),
+    content: z.string().describe("content of email"),
+    senderEmail : z.string().describe("sender's email"),
+    recieverEmail: z.string().describe("receiver email")
+})
 
-### if the content of any file is json or md, return it as json 
+type emailType = z.infer<typeof emailSchema>
+const jsonSchema = zodToJsonSchema(emailSchema, "emailSchema");
 
-### JSON response format 
-your response should be in JSON format as specified: 
-    
-    {
-        "to": "",
-        "message": "",
-        "function_call":{
-            "function": "",
-            "arguments": []
-        },
-        function_response: ""
-    }
-
-### explanation of keys in specified 
-    I will explain the keys - 
-    1. to - string, values could be system or user, depending on who you are replying to.
-    2. message - plain text message, use this only if you are replying to the user not system
-    3. function_call - use this only if you are replying to the system, it is a JSON object that determines which function to call and its arguments
-    4. a. function - name of the function 
-    4. b. arguments - an array of arguments for the funciton call where each array itme is the value for the argument
-
-### Available Functions - 
-    1. function name : print_conversation 
-    description : prints the previous conversation between user and agent
-    arguments : NONE
-
-    2. function name : read_auth_file
-    description : contains information about authentication endpoints to establish required cookies or tokens for subsequent endpoints.
-    arguments : none 
-
-    3. function name : clear_context 
-    description : clear the context array, creating more room for other context
-    arguments : none
-
-    current time and date for you is ${getCurrentTimeInTimeZone("Asia/Kolkata")}
+const AVAILABLE_TOOLS = `
+    available tools 
+    read_folder_content : used to read folder contents. 
 `
+
+const SYSTEM_PROMPT: string = `You are an AI agent that communicates exclusively through structured JSON. 
+
+Current Date and Time: \\\${getCurrentTimeInTimeZone("Asia/Kolkata")}
+
+Rules:
+1. Output ONLY a valid JSON object. Do not include markdown code blocks (such as \\\`\\\`\\\`json), conversational filler, or explanations.
+2. Choose exactly one destination: "user" (for direct communication) or "system" (for executing tools). Never mix fields between the two formats.
+3. If an invalid or unknown tool is requested, or if parameters are missing, routing must fallback to the "user" format to explain the issue.
+4. you can store important details, facts and decision using special memory functions, make sure to analyze the conversation and put or update specific important 
+    parts that seems important for user in a very summarized but understandable way for you, to make critical decisions or enhance user experience. 
+
+Available Tools:
+* get_auth_endpoint (No arguments required)
+* read_folder_content (No arguments required)
+* get_current_working_directory (No argument required)
+* get_auth_files_content : (No arguments required) - returns the content of files required for testing auth endpoints. 
+* get_important_memory : (No arguments required) - get all important facts that you've stored
+* set_important_memory : object with 2 keys => {about: string, memory:string} - summarized version of memory
+* delete_important_memory : (memory: string) - to update, get memory, and then invoke delete function.
+* read_file - takes single argument "filepath" : a string : read and return content of a file,requires path of the file as input
+* get_path - takes single arg "filename" : a string) : returns the path of the file using its name.
+* get_project_structure : (No argument required) - get all the information about files, you can use this recursively to investigate folders inside folders.
+* 
+
+JSON Output Formats:
+
+[Case 1: Interacting with the User]
+{
+  "to": "user",
+  "message": "<Your message or response text goes here>"
+}
+
+[Case 2: Interacting with the System \\/ Calling a Tool]
+{
+  "to": "system",
+  "function_call": {
+    "function": "<Exact function name with correct casing>",
+    "arguments": []
+  }
+}`;
+
+const read_file = async (filepath:string) => {
+    const content = await fs.readFile(filepath,"utf-8")
+    return content
+}
+
+const get_path = async (filename: string) => {
+    const filepath = path.resolve(filename)
+    return filepath
+}
+
+const get_project_structure = async() => {
+    const content = await fs.readdir("./", {withFileTypes:true})
+    return JSON.stringify(content)
+}
+
 const systemPrompt = {
     role : "system",
     content: SYSTEM_PROMPT,
@@ -104,9 +156,18 @@ function delete_appointment(datetime:string, name: string, email:string){
 // mapping functions to output string from LLM 
 // @ts-ignore
 const function_map = {
-    "read_auth_file" : read_auth_file,
-    "print_conversation" : () => print_conversation(messages),
-    "clear_context" : () => clear_context(messages, SYSTEM_PROMPT),
+    "read_folder_content":read_folder_content,
+    "get_current_working_directory":get_current_working_directory,
+    "get_auth_files_content":get_auth_files_content,
+    "get_important_memory": get_important_memory,
+    "set_important_memory": set_important_memory,
+    "delete_important_memory":delete_important_memory,
+    "read_file":read_file,
+    "get_path":get_path,
+    "get_project_structure":get_project_structure,
+    // "read_file_content":,
+    // "write_to_file",
+    // "execute_command",
 } as any 
 
 // process LLM response 
@@ -122,6 +183,8 @@ async function process_llm_response(response: any){
         // get function name and arguments from the parsedJson
         const fn = parsedJson.function_call.function
         const args = parsedJson.function_call.arguments
+
+        console.log(fn, args)
 
         // call the function 
         const functionResponse = await function_map[fn](...args)
@@ -142,7 +205,6 @@ async function send_to_llm(content: string){
     const response = await client.chat.completions.create({
         messages,
         model:"openai/gpt-oss-120b",
-        reasoning_effort: "medium",
     })
 
     // add gpt's response to this array as well 
